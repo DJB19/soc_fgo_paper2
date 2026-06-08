@@ -1,0 +1,7 @@
+build/
+*.swp
+*.o
+*.outbattery_model
+soc_fgo_clean
+soc_fgo_nonlinear
+build/
