@@ -17,8 +17,8 @@ using namespace std;
 using namespace gtsam;
 
 int main() {
-    const string input_file = "data/sensor_data_12000s.csv";
-    const string output_file = "results/result_case1_voltage_fgo.csv";
+    const string input_file = "data/paper2_bias100.csv";
+    const string output_file = "results/paper2_linear_bias100.csv";
 
     ifstream file(input_file);
     if (!file.is_open()) {

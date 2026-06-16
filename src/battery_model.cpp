@@ -21,7 +21,7 @@ int main() {
     double v_rc = 0.0;
 
     std::default_random_engine gen(42);
-    std::normal_distribution<double> voltage_noise(0.0, 0.10);
+    std::normal_distribution<double> voltage_noise(0.0, 0.0);
     std::uniform_real_distribution<double> current_dist(0.2, 1.0);
 
     std::ofstream file("sensor_data_random_12000s.csv");

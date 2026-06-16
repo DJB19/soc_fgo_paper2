@@ -1,8 +1,11 @@
-#include <iostream>
+make -j8#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <string>
+
+
+
 #include <memory>
 
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>

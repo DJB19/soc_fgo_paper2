@@ -1,7 +1,18 @@
+# build files
 build/
-*.swp
-*.o
-*.outbattery_model
-soc_fgo_clean
-soc_fgo_nonlinear
-build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# NASA raw data files
+*.mat
+*.zip
+
+# Python cache
+__pycache__/
+*.pyc
+
+# temporary files
+*.tmp
+*.bak

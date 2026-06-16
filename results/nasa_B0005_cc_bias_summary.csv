@@ -1,0 +1,4 @@
+bias_label,bias,CC_RMSE,CC_MAE,CC_MaxError,input_csv,result_csv
+000,0.0,6.925370162702206e-17,4.910720377996781e-17,2.220446049250313e-16,../data/nasa_B0005_bias000.csv,../results/nasa_B0005_cc_bias000.csv
+005,0.05,0.02585035497244316,0.02120206160822119,0.04748082142552498,../data/nasa_B0005_bias005.csv,../results/nasa_B0005_cc_bias005.csv
+010,0.1,0.049414988164521535,0.04054079650716452,0.09085928541352199,../data/nasa_B0005_bias010.csv,../results/nasa_B0005_cc_bias010.csv
