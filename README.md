@@ -1,152 +1,67 @@
-# SOC-FGO-Paper1
+# Robust SOC Estimation Using Nonlinear Factor Graph Optimization Under Current Sensor Bias
 
-Factor Graph Optimization (FGO) Based Battery State-of-Charge Estimation Using GTSAM
+This repository contains the source code, datasets, experimental results, figures, and manuscript draft for a research study on robust battery State-of-Charge (SOC) estimation under current sensor bias using nonlinear Factor Graph Optimization (FGO).
 
-## Overview
+The main purpose of this project is to evaluate whether nonlinear FGO can reduce SOC drift caused by biased current measurements compared with conventional Coulomb Counting (CC).
 
-This repository contains the source code, datasets, and experimental results associated with the paper:
+## Research Background
 
-**"Factor Graph Optimization for Battery State-of-Charge Estimation: A Comparative Study with Conventional Approaches"**
+Accurate SOC estimation is essential for Battery Management Systems (BMSs) in electric vehicles and battery energy storage systems. Coulomb Counting is simple and widely used, but it is highly sensitive to current sensor bias because current measurement errors accumulate over time through integration.
 
-The objective of this work is to investigate the applicability of Factor Graph Optimization (FGO) for battery State-of-Charge (SOC) estimation and compare its performance with traditional estimation approaches under different measurement conditions.
+To address this issue, this study applies nonlinear Factor Graph Optimization, which jointly considers:
 
----
+- current-based SOC transition constraints,
+- voltage-based measurement constraints,
+- global optimization over the full SOC trajectory.
 
-## Features
+## Main Contributions
 
-* Linear voltage measurement model
-* Nonlinear voltage measurement model
-* GTSAM-based factor graph optimization
-* Noise sensitivity analysis
-* Random current profile testing
-* Reproducible simulation environment
-* Publication-ready figures and evaluation scripts
+This repository includes:
 
----
+1. A first-order RC battery model for generating simulation data.
+2. Current sensor bias experiments under 0.5%, 1%, 2%, 5%, and 10% bias levels.
+3. Comparison between Coulomb Counting, linear FGO, and nonlinear FGO.
+4. NASA B0005 real battery dataset validation.
+5. SOC estimation error evaluation using RMSE and MAE.
+6. Figures and manuscript draft for Paper2.
+
+## Key Results
+
+### Simulation Validation
+
+Using a 12,001-sample simulated battery dataset under random current profiles, the following result was obtained under 10% current sensor bias:
+
+| Method | RMSE |
+|---|---:|
+| Coulomb Counting | 0.0382 |
+| Nonlinear FGO | 0.0067 |
+
+The simulation results show that Coulomb Counting error increases as current bias grows, while nonlinear FGO maintains stable SOC estimation accuracy.
+
+### NASA B0005 Validation
+
+The first discharge cycle of the NASA B0005 lithium-ion battery aging dataset was extracted and converted into CSV format. Artificial current measurement biases of 5% and 10% were introduced.
+
+| Current Bias | CC RMSE | Nonlinear FGO RMSE |
+|---:|---:|---:|
+| 5% | 0.02585 | 0.01618 |
+| 10% | 0.04941 | 0.01618 |
+
+The NASA validation further confirms that nonlinear FGO is more robust than Coulomb Counting under current sensor bias.
 
 ## Repository Structure
 
 ```text
 .
-├── src/
-│   └── battery_model.cpp
-│
-├── data/
-│   └── input datasets
-│
-├── results/
-│   ├── SOC estimation results
-│   ├── comparison figures
-│   └── evaluation metrics
-│
-├── main.cpp
-├── main_clean.cpp
-├── main_nonlinear.cpp
-│
-├── SOCProcessFactor.h
-├── SOCVoltageFactor.h
-├── SOCVoltageFactorNonlinear.h
-│
-└── plot_paper1_figures.py
-```
-
-## Requirements
-
-* Ubuntu Linux
-* CMake >= 3.20
-* GTSAM 4.x
-* Eigen3
-* C++17
-
----
-
-## Build
-
-```bash
-mkdir build
-cd build
-
-cmake ..
-make -j
-```
-
----
-
-## Run
-
-Linear model:
-
-```bash
-./soc_fgo_clean
-```
-
-Nonlinear model:
-
-```bash
-./soc_fgo_nonlinear
-```
-
----
-
-## Experimental Results
-
-The repository includes:
-
-* SOC estimation trajectories
-* Error comparison analysis
-* Noise sensitivity evaluation
-* Publication-ready PDF and PNG figures
-
-Generated figures:
-
-```text
-results/
-├── figure1_soc_comparison.pdf
-├── figure2_error_comparison.pdf
-└── figure3_noise_sensitivity.pdf
-```
-
----
-
-## Reproducibility
-
-All simulation data, source code, plotting scripts, and factor graph implementations are provided to support full reproducibility of the published results.
-
----
-
-## Future Work
-
-Planned extensions include:
-
-* Real-world battery datasets
-* Battery aging (SOH) estimation
-* Sliding-window optimization
-* Comparison with EKF and UKF
-* Public benchmark dataset evaluation
-
----
+ data/
+ results/
+ manuscript/
+   ├── paper2_draft.md
+   └── figures/
+ src/
+ main.cpp
+ main_clean.cpp
+ main_nonlinear.cpp
+ analysis scripts
 
 
-
-## Author
-
-Lei Zhang
-
-Doctoral Researcher
-
-Fukuoka Institute of Technology
-
-Faculty of Engineering
-
-Department of Electrical Engineering
-
-Tashima Laboratory
-
-Japan
-
-
----
-
-## License
-
-This repository is released for academic and research purposes.
