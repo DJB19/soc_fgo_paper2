@@ -16,3 +16,15 @@ __pycache__/
 # temporary files
 *.tmp
 *.bak
+
+# local temporary files
+battery_model
+main_clean_backup.cpp
+main_nonlinear_backup.cpp
+nasa_data/
+paper2_bias100_soc_comparison.png
+paper2_bias_rmse.png
+paper2_final_results.txt
+paper2_metrics.txt
+workspace_paper2/
+sensor_data_random_12000s.csv
