@@ -1,67 +1,63 @@
-# Robust SOC Estimation Using Nonlinear Factor Graph Optimization Under Current Sensor Bias
+# Robust Battery State-of-Charge Estimation under Current Sensor Bias Using Nonlinear Factor Graph Optimization
 
-This repository contains the source code, datasets, experimental results, figures, and manuscript draft for a research study on robust battery State-of-Charge (SOC) estimation under current sensor bias using nonlinear Factor Graph Optimization (FGO).
+This repository contains the source code, simulation results, manuscript draft, and validation materials for the second paper on battery State-of-Charge (SOC) estimation using nonlinear Factor Graph Optimization (FGO).
 
-The main purpose of this project is to evaluate whether nonlinear FGO can reduce SOC drift caused by biased current measurements compared with conventional Coulomb Counting (CC).
+## Research Focus
 
-## Research Background
+This study focuses specifically on the robustness of SOC estimation under current sensor bias. Unlike general SOC estimation studies that mainly compare estimation accuracy under nominal measurement conditions, this work investigates how biased current measurements cause cumulative SOC drift and how nonlinear FGO can mitigate this drift by incorporating voltage-based measurement constraints.
 
-Accurate SOC estimation is essential for Battery Management Systems (BMSs) in electric vehicles and battery energy storage systems. Coulomb Counting is simple and widely used, but it is highly sensitive to current sensor bias because current measurement errors accumulate over time through integration.
+The main objective is to compare conventional Coulomb Counting (CC) and nonlinear FGO under different levels of artificial current sensor bias.
 
-To address this issue, this study applies nonlinear Factor Graph Optimization, which jointly considers:
+## Paper Title
 
-- current-based SOC transition constraints,
-- voltage-based measurement constraints,
-- global optimization over the full SOC trajectory.
+**Robust Battery State-of-Charge Estimation under Current Sensor Bias Using Nonlinear Factor Graph Optimization**
 
 ## Main Contributions
 
-This repository includes:
+1. A current-sensor-bias-oriented SOC estimation problem is formulated to analyze the cumulative drift of Coulomb Counting under biased current measurements.
 
-1. A first-order RC battery model for generating simulation data.
-2. Current sensor bias experiments under 0.5%, 1%, 2%, 5%, and 10% bias levels.
-3. Comparison between Coulomb Counting, linear FGO, and nonlinear FGO.
-4. NASA B0005 real battery dataset validation.
-5. SOC estimation error evaluation using RMSE and MAE.
-6. Figures and manuscript draft for Paper2.
+2. A nonlinear FGO-based SOC estimation framework is developed by combining current-based SOC transition constraints and voltage-based measurement constraints.
 
-## Key Results
+3. The proposed method is evaluated using both controlled simulation data and preliminary real battery validation based on the NASA B0005 lithium-ion battery aging dataset.
 
-### Simulation Validation
+## Simulation Study
 
-Using a 12,001-sample simulated battery dataset under random current profiles, the following result was obtained under 10% current sensor bias:
+A first-order RC battery model was used to generate a 12,001-sample simulation dataset under random current profiles. Artificial current sensor biases of 0.5%, 1%, 2%, 5%, and 10% were introduced into the current measurements.
 
-| Method | RMSE |
-|---|---:|
-| Coulomb Counting | 0.0382 |
-| Nonlinear FGO | 0.0067 |
+The simulation results show that the estimation error of Coulomb Counting increases as current sensor bias grows, while nonlinear FGO maintains more stable estimation accuracy through voltage-constrained optimization.
 
-The simulation results show that Coulomb Counting error increases as current bias grows, while nonlinear FGO maintains stable SOC estimation accuracy.
+For example, under a 10% current sensor bias in the simulation dataset:
 
-### NASA B0005 Validation
+- Coulomb Counting RMSE: 0.0382
+- Nonlinear FGO RMSE: 0.0067
 
-The first discharge cycle of the NASA B0005 lithium-ion battery aging dataset was extracted and converted into CSV format. Artificial current measurement biases of 5% and 10% were introduced.
+## NASA B0005 Preliminary Validation
 
-| Current Bias | CC RMSE | Nonlinear FGO RMSE |
-|---:|---:|---:|
+A preliminary real-data validation was conducted using the first discharge cycle of the NASA B0005 lithium-ion battery aging dataset. Artificial current biases of 5% and 10% were applied to the measured current signal.
+
+The NASA validation results further support the robustness of nonlinear FGO under current sensor bias:
+
+| Current Bias | Coulomb Counting RMSE | Nonlinear FGO RMSE |
+|---|---:|---:|
 | 5% | 0.02585 | 0.01618 |
 | 10% | 0.04941 | 0.01618 |
 
-The NASA validation further confirms that nonlinear FGO is more robust than Coulomb Counting under current sensor bias.
+These results indicate that nonlinear FGO can reduce current-bias-induced SOC drift under realistic voltage and current measurement conditions.
 
 ## Repository Structure
 
 ```text
 .
- data/
- results/
- manuscript/
+ data/                         # Simulation and processed validation datasets
+ results/                      # Output results from CC and FGO experiments
+ src/                          # C++ source code for battery model and FGO experiments
+ manuscript/                   # Manuscript draft, figures, and teacher review files
    ├── paper2_draft.md
+   ├── paper2_draft_for_teacher.html
+   ├── paper2_draft_for_teacher_selfcontained.html
    └── figures/
- src/
- main.cpp
- main_clean.cpp
- main_nonlinear.cpp
- analysis scripts
+ CMakeLists.txt
+ README.md
 
+eof
 
