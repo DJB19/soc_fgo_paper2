@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Paper2 Draft for Teacher Review</title>
+<style>
+body {
+    font-family: Arial, "Noto Sans CJK JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.65;
+    font-size: 16px;
+    color: #222;
+}
+h1 {
+    font-size: 26px;
+    line-height: 1.3;
+    text-align: center;
+    margin-bottom: 30px;
+}
+h2 {
+    font-size: 22px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 6px;
+    margin-top: 36px;
+}
+h3 {
+    font-size: 18px;
+    margin-top: 28px;
+}
+p {
+    text-align: justify;
+}
+img {
+    max-width: 100%;
+    display: block;
+    margin: 22px auto;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0;
+    font-size: 14px;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+}
+th {
+    background: #f2f2f2;
+}
+pre {
+    background: #f7f7f7;
+    border: 1px solid #ddd;
+    padding: 10px;
+    overflow-x: auto;
+    font-size: 14px;
+}
+code {
+    font-family: Consolas, Monaco, monospace;
+}
+@media print {
+    body {
+        max-width: none;
+        margin: 20mm;
+        font-size: 12pt;
+    }
+    h1, h2, h3 {
+        page-break-after: avoid;
+    }
+    img {
+        page-break-inside: avoid;
+    }
+}
+</style>
+</head>
+<body>
+<h1>Robust Battery State-of-Charge Estimation under Current Sensor Bias Using Nonlinear Factor Graph Optimization</h1>
+<h2>Abstract</h2>
+<p>Current sensor bias is a critical source of accumulated error in battery State-of-Charge (SOC) estimation. Although Coulomb Counting (CC) is widely used in Battery Management Systems due to its simplicity, even a small bias in current measurement can accumulate over time and cause significant SOC drift. This study focuses specifically on the robustness of SOC estimation under current sensor bias and proposes a nonlinear Factor Graph Optimization (FGO) framework that jointly incorporates current-based SOC transition constraints and voltage-based measurement constraints.</p>
+<p>A first-order RC battery model was used to generate a 12,001-sample simulation dataset under random current profiles. Artificial current sensor biases of 0.5%, 1%, 2%, 5%, and 10% were introduced to evaluate the sensitivity of Coulomb Counting and nonlinear FGO. In addition, a preliminary real-data validation was conducted using the first discharge cycle of the NASA B0005 lithium-ion battery aging dataset, where 5% and 10% artificial current biases were applied to the measured current signal.</p>
+<p>The simulation results show that the SOC error of Coulomb Counting increases rapidly as current bias grows, whereas nonlinear FGO maintains stable estimation accuracy by using voltage information to constrain the SOC trajectory. Under a 10% current sensor bias in the simulation dataset, the RMSE of Coulomb Counting increased to 0.0382, while nonlinear FGO achieved an RMSE of 0.0067. The NASA B0005 validation further supports this trend. Under 5% and 10% current bias, Coulomb Counting produced RMSE values of 0.02585 and 0.04941, respectively, whereas nonlinear FGO maintained a nearly stable RMSE of approximately 0.01618. These results indicate that nonlinear FGO can effectively reduce SOC drift caused by biased current measurements and improve the robustness of battery state estimation under sensor uncertainty.</p>
+<p><strong>Keywords:</strong> Battery Management System, State of Charge, Factor Graph Optimization, Current Sensor Bias, Sensor Uncertainty, Electric Vehicle</p>
+<h2>1 Introduction</h2>
+<p>Accurate State-of-Charge (SOC) estimation is essential for the safe and reliable operation of electric vehicles and battery energy storage systems. In practical Battery Management Systems (BMSs), SOC cannot be measured directly and is usually estimated from measurable signals such as current, voltage, and temperature. Among these signals, current measurement plays a central role because many SOC estimation methods rely on current integration or current-based state transition models. Therefore, even a small current sensor bias can accumulate over time and cause significant SOC estimation drift.</p>
+<p>Coulomb Counting (CC) is one of the most widely used SOC estimation methods due to its simplicity and low computational cost. However, CC directly integrates the measured current, which makes it highly sensitive to current measurement errors. When a constant or slowly varying current sensor bias exists, the resulting SOC error accumulates monotonically during battery operation. This drift problem becomes especially serious during long-term operation and can reduce the reliability of energy management, driving range prediction, and battery protection functions.</p>
+<p>To reduce accumulated estimation errors, model-based and optimization-based methods have been investigated for battery state estimation. Factor Graph Optimization (FGO) provides a flexible framework for combining multiple sources of information, such as current-based process constraints and voltage-based measurement constraints, into a unified optimization problem. Compared with simple current integration, FGO can use voltage measurements to correct the SOC trajectory and suppress drift caused by biased current measurements.</p>
+<p>This study investigates the robustness of nonlinear FGO for battery SOC estimation under current sensor bias conditions. A first-order RC battery model is employed to generate battery operation data under random current profiles. Several levels of artificial current sensor bias are introduced into the measurements. The performance of conventional Coulomb Counting and nonlinear FGO is then compared using Root Mean Square Error (RMSE) and Mean Absolute Error (MAE). In addition, a preliminary real-data validation is conducted using the NASA B0005 lithium-ion battery aging dataset to further evaluate the proposed method under realistic voltage and current measurement conditions.</p>
+<p>Unlike general SOC estimation studies that mainly compare estimation accuracy under nominal measurement conditions, this work focuses specifically on the robustness of SOC estimation under current sensor bias. The main objective is not only to evaluate whether nonlinear FGO can estimate SOC accurately, but also to investigate whether it can suppress the cumulative drift caused by biased current measurements.</p>
+<p>The main contributions of this study are summarized as follows:</p>
+<ol>
+<li>
+<p>A current-sensor-bias-oriented SOC estimation problem is formulated to analyze the cumulative drift of Coulomb Counting under biased current measurements.</p>
+</li>
+<li>
+<p>A nonlinear FGO-based SOC estimation framework is developed by combining current-based process constraints and voltage-based measurement constraints to improve robustness against current sensor bias.</p>
+</li>
+<li>
+<p>The proposed method is evaluated using both controlled simulation data with multiple current bias levels and preliminary real battery validation based on the NASA B0005 dataset.</p>
+</li>
+</ol>
+<h2>2 Battery Model</h2>
+<p>A first-order RC equivalent circuit model was employed in this study to simulate the dynamic behavior of a lithium-ion battery. Due to its balance between computational efficiency and modeling accuracy, the first-order RC model is widely used in battery state estimation research.</p>
+<p>The model consists of an open-circuit voltage (OCV) source, an ohmic resistance (R_0), and a parallel RC network composed of resistance (R_1) and capacitance (C_1). The RC network is used to represent battery polarization effects and transient voltage dynamics during charging and discharging processes.</p>
+<p>The battery State-of-Charge (SOC) is updated using the Coulomb Counting principle:</p>
+<pre><code class="language-text">SOC(k+1) = SOC(k) - \frac{I(k)\Delta t}{Q}
+</code></pre>
+<p>where (I(k)) is the battery current, (\Delta t) is the sampling interval, and (Q) is the battery capacity in Coulombs.</p>
+<p>The polarization voltage of the RC branch is modeled as:</p>
+<pre><code class="language-text">V_{RC}(k+1) = \alpha V_{RC}(k) + (1-\alpha)R_1I(k)
+</code></pre>
+<p>where</p>
+<pre><code class="language-text">\alpha = e^{-\frac{\Delta t}{R_1C_1}}
+</code></pre>
+<p>The terminal voltage is calculated as:</p>
+<pre><code class="language-text">V(k) = OCV(SOC(k)) - I(k)R_0 - V_{RC}(k)
+</code></pre>
+<p>In this work, the battery model parameters were selected as:</p>
+<ul>
+<li>(R_0 = 0.01\ \Omega)</li>
+<li>(R_1 = 0.02\ \Omega)</li>
+<li>(C_1 = 2000\ F)</li>
+</ul>
+<p>The initial SOC was set to 0.8. Random current profiles ranging from 0.2 A to 1.0 A were generated to emulate varying battery operating conditions. Current sensor bias was then introduced into the measurements to evaluate the robustness of different SOC estimation approaches.</p>
+<h2>3 Nonlinear Factor Graph Optimization</h2>
+<p>The battery SOC estimation problem was formulated as a nonlinear Factor Graph Optimization (FGO) problem. In a factor graph, unknown state variables are represented as nodes, while measurement constraints are represented as factors connecting these nodes.</p>
+<p>In this study, the SOC value at each time step was defined as a state variable:</p>
+<pre><code class="language-text">x_k = SOC(k)
+</code></pre>
+<p>The objective of FGO is to estimate the optimal sequence of SOC states by minimizing the overall error generated by all constraints in the graph.</p>
+<h3>3.1 Process Factor</h3>
+<p>The process factor describes the battery SOC evolution according to the Coulomb Counting principle. For two consecutive states, the process model is given by:</p>
+<pre><code class="language-text">SOC(k+1) = SOC(k) - \frac{I(k)\Delta t}{Q}
+</code></pre>
+<p>where (I(k)) denotes the measured current, (\Delta t) is the sampling interval, and (Q) is the battery capacity.</p>
+<p>This relationship is implemented as a process factor connecting adjacent SOC nodes in the graph. The process factor provides the primary state transition information but may accumulate errors when current sensor bias exists.</p>
+<h3>3.2 Voltage Factor</h3>
+<p>To compensate for accumulated drift, battery terminal voltage measurements are incorporated as additional constraints.</p>
+<p>The predicted terminal voltage is computed using the battery model:</p>
+<pre><code class="language-text">V_{pred}(k) = OCV(SOC(k)) - I(k)R_0 - V_{RC}(k)
+</code></pre>
+<p>The voltage factor is defined as the difference between measured voltage and predicted voltage:</p>
+<pre><code class="language-text">e_v(k) = V_{meas}(k) - V_{pred}(k)
+</code></pre>
+<p>Unlike Coulomb Counting, which relies solely on current integration, the voltage factor continuously constrains the SOC estimate using voltage observations. This mechanism allows the optimization process to correct accumulated SOC drift caused by biased current measurements.</p>
+<h3>3.3 Nonlinear Optimization</h3>
+<p>The complete factor graph consists of process factors and voltage factors over the entire estimation horizon.</p>
+<p>The optimal SOC trajectory is obtained by minimizing the total nonlinear least-squares cost function:</p>
+<p>J = \sum e_p^2 + \sum e_v^2</p>
+<p>where (e_p) represents process-factor residuals and (e_v) represents voltage-factor residuals.</p>
+<p>The optimization was implemented using the Georgia Tech Smoothing and Mapping (GTSAM) library. Initial SOC estimates were generated using Coulomb Counting and subsequently refined through nonlinear optimization.</p>
+<p>By jointly utilizing historical information and voltage constraints, nonlinear FGO can reduce estimation drift and improve robustness against sensor uncertainties.</p>
+<h2>4 Experimental Design</h2>
+<h3>4. Experimental Setup</h3>
+<p>To evaluate the robustness of nonlinear Factor Graph Optimization under current sensor bias conditions, a simulation-based experimental framework was developed.</p>
+<p>A first-order RC battery model was used to generate battery operation data. The simulation duration was set to 12,000 seconds with a sampling interval of 1 second, resulting in a dataset containing 12,001 samples. The battery current was randomly generated within the range of 0.2 A to 1.0 A to emulate varying operating conditions. The initial SOC was set to 0.8.</p>
+<p>The generated dataset contained the following variables:</p>
+<ul>
+<li>Time</li>
+<li>Battery current</li>
+<li>Terminal voltage</li>
+<li>Ground-truth SOC</li>
+</ul>
+<p>To investigate the influence of current sensor bias, five biased datasets were created from the baseline dataset. The current measurements were multiplied by a constant bias factor while keeping the true battery dynamics unchanged.</p>
+<p>The evaluated bias levels were:</p>
+<ul>
+<li>0.5%</li>
+<li>1.0%</li>
+<li>2.0%</li>
+<li>5.0%</li>
+<li>10.0%</li>
+</ul>
+<p>For each bias level, SOC estimation was performed using:</p>
+<ol>
+<li>Coulomb Counting (CC)</li>
+<li>Linear Factor Graph Optimization (Linear FGO)</li>
+<li>Nonlinear Factor Graph Optimization (Nonlinear FGO)</li>
+</ol>
+<p>The estimated SOC values were compared against the ground-truth SOC generated by the battery simulator.</p>
+<p>Two commonly used evaluation metrics were adopted:</p>
+<p>Root Mean Square Error (RMSE)</p>
+<pre><code class="language-text">RMSE = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(SOC_{est,i}-SOC_{true,i})^2}
+</code></pre>
+<p>Mean Absolute Error (MAE)</p>
+<pre><code class="language-text">MAE = \frac{1}{N}\sum_{i=1}^{N}|SOC_{est,i}-SOC_{true,i}|
+</code></pre>
+<p>All optimization procedures were implemented using the GTSAM library in C++. The experiments were conducted on Linux using the same battery model and estimation framework for all tested bias levels to ensure a fair comparison.</p>
+<h2>5 Results and Discussion</h2>
+<h3>5. Results and Discussion</h3>
+<p>The estimation performance of Coulomb Counting (CC), Linear FGO, and Nonlinear FGO was evaluated under different levels of current sensor bias. The RMSE and MAE values were calculated using the ground-truth SOC generated by the battery model.</p>
+<p>Table 1 summarizes the RMSE results obtained from the experiments.</p>
+<table>
+<thead>
+<tr>
+<th>Current Sensor Bias</th>
+<th>CC RMSE</th>
+<th>Nonlinear FGO RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.5%</td>
+<td>0.00191</td>
+<td>0.00878</td>
+</tr>
+<tr>
+<td>1.0%</td>
+<td>0.00382</td>
+<td>0.00867</td>
+</tr>
+<tr>
+<td>2.0%</td>
+<td>0.00764</td>
+<td>0.00845</td>
+</tr>
+<tr>
+<td>5.0%</td>
+<td>0.01911</td>
+<td>0.00778</td>
+</tr>
+<tr>
+<td>10.0%</td>
+<td>0.03821</td>
+<td>0.00666</td>
+</tr>
+</tbody>
+</table>
+<p>Figure 1 illustrates the relationship between current sensor bias and estimation RMSE.</p>
+<p><strong>Figure 1. RMSE comparison under different current sensor bias levels.</strong></p>
+<p><img alt="Figure X. Simulation results: RMSE comparison under different current sensor bias levels." src="figures/paper2_bias_rmse.png" /></p>
+<p>The results reveal two distinct trends. First, the estimation error of Coulomb Counting increases rapidly as current sensor bias grows. Since Coulomb Counting relies exclusively on current integration, any systematic measurement bias accumulates over time and leads to increasing SOC drift.</p>
+<p>Second, the estimation error of Nonlinear FGO remains relatively stable across all tested bias levels. Unlike Coulomb Counting, Nonlinear FGO incorporates terminal voltage measurements as additional constraints. These voltage constraints continuously correct accumulated SOC errors during optimization, preventing long-term drift.</p>
+<p>Interestingly, the robustness advantage of Nonlinear FGO becomes increasingly apparent at higher bias levels. At a bias of 10%, the RMSE of Coulomb Counting reached 0.03821, while the RMSE of Nonlinear FGO remained at only 0.00666. This corresponds to an error reduction of approximately 82.6%.</p>
+<p>To further visualize the estimation behavior, Figure 2 compares the SOC trajectories under the 10% bias condition.</p>
+<p><strong>Figure 2. SOC estimation trajectories under 10% current sensor bias.</strong></p>
+<p><img alt="Figure X. Simulation results: SOC estimation comparison under 10% current sensor bias." src="figures/paper2_bias100_soc_comparison.png" /></p>
+<p>As shown in Figure 2, the Coulomb Counting estimate gradually deviates from the true SOC trajectory due to cumulative integration errors. In contrast, the Nonlinear FGO estimate closely follows the ground-truth SOC throughout the entire experiment. The voltage-constrained optimization effectively suppresses the drift caused by biased current measurements.</p>
+<p>These results demonstrate that Nonlinear FGO provides significantly improved robustness against current sensor bias compared with conventional Coulomb Counting. The ability to integrate both process information and voltage measurements enables more reliable SOC estimation under realistic sensor uncertainty conditions.</p>
+<h3>Figure 1</h3>
+<p>paper2_bias_rmse.png</p>
+<h3>Figure 2</h3>
+<p>paper2_bias100_soc_comparison.png</p>
+<h2>5.4 Validation Using NASA B0005 Battery Aging Dataset</h2>
+<p>To further evaluate the robustness of the proposed nonlinear Factor Graph Optimization (FGO) method, an additional validation experiment was conducted using real battery data from the NASA B0005 lithium-ion battery aging dataset. The first discharge cycle of battery B0005 was extracted from the original MATLAB data file. The measured terminal voltage, current, temperature, and time series were converted into a CSV format for further analysis. The discharge cycle contained 197 samples, with a nominal discharge capacity of 1.856 Ah. The measured voltage decreased from approximately 4.19 V to 2.61 V during the discharge process.</p>
+<p>Since the original NASA dataset does not directly provide a sensor-bias condition, artificial current measurement biases of 5% and 10% were introduced into the measured current signal. The reference SOC was obtained by Coulomb integration using the original current measurement and the reported discharge capacity. Then, both Coulomb Counting (CC) and the proposed nonlinear FGO method were applied to the biased current data.</p>
+<p>The validation results are summarized in Table X. When no current bias was introduced, Coulomb Counting achieved nearly zero error because the reference SOC was also generated by current integration. However, when current bias was introduced, the CC error increased significantly. Under 5% current bias, the CC RMSE increased to 0.02585, while the nonlinear FGO achieved a lower RMSE of 0.01618. Under 10% current bias, the CC RMSE further increased to 0.04941, whereas the nonlinear FGO RMSE remained almost unchanged at approximately 0.01618.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Current Bias</th>
+<th style="text-align: right;">CC RMSE</th>
+<th style="text-align: right;">Nonlinear FGO RMSE</th>
+<th style="text-align: right;">CC MAE</th>
+<th style="text-align: right;">Nonlinear FGO MAE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0%</td>
+<td style="text-align: right;">0.00000</td>
+<td style="text-align: right;">0.01618</td>
+<td style="text-align: right;">0.00000</td>
+<td style="text-align: right;">0.01126</td>
+</tr>
+<tr>
+<td style="text-align: right;">5%</td>
+<td style="text-align: right;">0.02585</td>
+<td style="text-align: right;">0.01618</td>
+<td style="text-align: right;">0.02120</td>
+<td style="text-align: right;">0.01126</td>
+</tr>
+<tr>
+<td style="text-align: right;">10%</td>
+<td style="text-align: right;">0.04941</td>
+<td style="text-align: right;">0.01618</td>
+<td style="text-align: right;">0.04054</td>
+<td style="text-align: right;">0.01126</td>
+</tr>
+</tbody>
+</table>
+<p>These results confirm the main observation obtained from the simulation study. Coulomb Counting is highly sensitive to current sensor bias because the bias is accumulated over time through integration. In contrast, nonlinear FGO can reduce the impact of biased current measurements by jointly considering the temporal SOC transition model and the voltage-SOC measurement constraint. Therefore, the NASA B0005 validation provides additional evidence that nonlinear FGO is more robust than Coulomb Counting under current sensor bias.</p>
+<p>Figure X shows the SOC estimation curves under 10% current bias. The CC result gradually deviates from the reference SOC, while the nonlinear FGO result remains closer to the reference trajectory. Figure X further compares the RMSE of CC and nonlinear FGO under different bias levels, showing that the FGO error remains nearly stable as the current bias increases.</p>
+<p><img alt="Figure X. NASA B0005 validation: SOC estimation comparison under 10% current sensor bias." src="figures/nasa_B0005_fgo_soc_10bias.png" /></p>
+<p><img alt="Figure X. NASA B0005 validation: RMSE comparison between Coulomb Counting and nonlinear FGO under different current sensor bias levels." src="figures/nasa_B0005_fgo_vs_cc_rmse.png" /></p>
+<p><img alt="Figure X. NASA B0005 validation: SOC estimation comparison under 10% current sensor bias." src="figures/nasa_B0005_fgo_soc_10bias.png" /></p>
+<p><img alt="Figure X. NASA B0005 validation: RMSE comparison between Coulomb Counting and nonlinear FGO under different current sensor bias levels." src="figures/nasa_B0005_fgo_vs_cc_rmse.png" /></p>
+<h2>6 Conclusion</h2>
+<p>This study investigated the robustness of nonlinear Factor Graph Optimization (FGO) for battery State-of-Charge (SOC) estimation under current sensor bias. Unlike general SOC estimation studies under nominal measurement conditions, this work focused specifically on the cumulative drift caused by biased current measurements and evaluated whether voltage-constrained nonlinear FGO can mitigate this error.</p>
+<p>Simulation results based on a first-order RC battery model showed that Coulomb Counting is highly sensitive to current sensor bias. As the bias level increased from 0.5% to 10%, the SOC estimation error of Coulomb Counting increased continuously. In contrast, nonlinear FGO maintained stable estimation accuracy by jointly using current-based process constraints and voltage-based measurement constraints. Under a 10% current sensor bias, Coulomb Counting produced an RMSE of 0.0382, whereas nonlinear FGO achieved an RMSE of 0.0067.</p>
+<p>A preliminary real-data validation was also conducted using the first discharge cycle of the NASA B0005 lithium-ion battery aging dataset. Under 5% and 10% artificial current bias, Coulomb Counting produced RMSE values of 0.02585 and 0.04941, respectively, while nonlinear FGO maintained a nearly stable RMSE of approximately 0.01618. These results further support the conclusion that nonlinear FGO can reduce current-bias-induced SOC drift under realistic voltage and current measurement conditions.</p>
+<p>The main finding of this study is that nonlinear FGO can improve SOC estimation robustness under sensor uncertainty by using voltage measurements to constrain the SOC trajectory. Future work will extend the validation to multiple battery cells, different aging stages, various temperature conditions, and real experimental current sensor bias scenarios.</p>
+<h2>References</h2>
+</body>
+</html>
