@@ -10,11 +10,13 @@ The RMSE of both methods increased approximately linearly with current bias; how
 
 ## 1 Introduction
 
-Accurate state-of-charge (SOC) estimation is essential for the safe and reliable operation of electric vehicles and battery energy-storage systems. Because SOC cannot be measured directly, battery management systems infer it from measurable quantities such as current, terminal voltage, and temperature. Current measurements are particularly important because they determine the state transition in many SOC estimators. A systematic offset or scale error in the measured current therefore produces an error that accumulates over the operating horizon.
+Accurate state-of-charge (SOC) estimation is essential for the safe and reliable operation of electric vehicles and battery energy-storage systems [1,2]. Because SOC cannot be measured directly, battery management systems infer it from measurable quantities such as current, terminal voltage, and temperature. Current measurements are particularly important because they determine the state transition in many SOC estimators. A systematic offset or scale error in the measured current therefore produces an error that accumulates over the operating horizon.
 
-Coulomb counting (CC) remains widely used because of its simplicity and low computational cost. Its principal weakness is that it directly integrates the measured current. A persistent current-sensor bias consequently produces an SOC error that grows with accumulated charge throughput and elapsed operating time. This drift affects range prediction, energy management, and battery-protection decisions.
+Coulomb counting (CC) remains widely used because of its simplicity and low computational cost [3]. Its principal weakness is that it directly integrates the measured current. A persistent current-sensor bias consequently produces an SOC error that grows with accumulated charge throughput and elapsed operating time [3–5]. This drift affects range prediction, energy management, and battery-protection decisions.
 
-Model-based estimators can reduce this dependence on current integration by incorporating other observations. Factor graph optimization (FGO) provides a general framework in which process relationships, measurements, priors, and additional physical constraints are represented as factors over a sequence of states. For SOC estimation, current-based process factors describe temporal evolution, whereas voltage factors provide an independent constraint through the nonlinear open-circuit-voltage (OCV) relationship. The complete state trajectory is estimated jointly rather than propagated only from the preceding state.
+Model-based estimators can reduce this dependence on current integration by incorporating other observations [1,2,6]. Factor graph optimization (FGO) provides a general framework in which process relationships, measurements, priors, and additional physical constraints are represented as factors over a sequence of states [7,8]. For SOC estimation, current-based process factors describe temporal evolution, whereas voltage factors provide an independent constraint through the nonlinear open-circuit-voltage (OCV) relationship. The complete state trajectory is estimated jointly rather than propagated only from the preceding state. Our preceding study established the feasibility and accuracy benefit of linear and nonlinear voltage observation factors for battery SOC estimation [9].
+
+Previous error analyses have shown theoretically that sensor bias and variance propagate differently through battery SOC estimators [4], while experimental evidence indicates that systematic bias can dominate random-noise effects in practical estimation settings [5]. These studies establish why sensor bias matters, but they do not quantify how strongly a voltage-constrained factor-graph estimator transmits a controlled current bias into trajectory-level SOC error. The present work addresses this gap through an explicitly defined RMSE bias-propagation coefficient.
 
 This study focuses on the propagation of multiplicative current-sensor bias rather than nominal-condition accuracy alone. Controlled bias levels are imposed on a common simulated trajectory, and the response of CC and nonlinear FGO is quantified using RMSE and MAE. In addition to reporting individual error values, the study characterizes the first-order relationship between imposed bias and SOC-estimation RMSE. This provides a direct measure of how strongly each estimator transmits current-sensor bias into the estimated SOC trajectory.
 
@@ -32,7 +34,7 @@ The main contributions are as follows:
 
 ### 2.1 First-Order RC Model
 
-A first-order RC equivalent-circuit model was used to generate the simulation data. It consists of an OCV source, an ohmic resistance \(R_0\), and a parallel \(R_1C_1\) branch representing polarization dynamics. Discharge current is defined as positive. For the transition from sample \(k-1\) to sample \(k\), SOC is updated as
+A first-order RC equivalent-circuit model was used to generate the simulation data. This model class provides a practical compromise between representation of terminal-voltage dynamics and computational complexity [6]. It consists of an OCV source, an ohmic resistance \(R_0\), and a parallel \(R_1C_1\) branch representing polarization dynamics. Discharge current is defined as positive. For the transition from sample \(k-1\) to sample \(k\), SOC is updated as
 
 \[
 z_k=z_{k-1}-\frac{I_k\Delta t}{3600Q},
@@ -74,7 +76,7 @@ where \(b\) is the imposed multiplicative bias. The reference SOC trajectory and
 
 ## 3 Nonlinear Factor Graph Optimization
 
-The SOC at every sample is represented by a graph variable \(z_k\). The graph contains one prior factor, current-driven process factors between adjacent SOC states, and nonlinear voltage factors associated with individual states.
+The SOC at every sample is represented by a graph variable \(z_k\). Following the standard factor-graph formulation, variables represent unknown states and factors encode local probabilistic constraints [7,8]. The graph contains one prior factor, current-driven process factors between adjacent SOC states, and nonlinear voltage factors associated with individual states.
 
 ### 3.1 Prior and Process Factors
 
@@ -132,7 +134,7 @@ z_{0:N}^{*}=\arg\min_{z_{0:N}}
 \right].
 \]
 
-The factor standard deviations are \(\sigma_0=10^{-4}\), \(\sigma_p=10^{-3}\), and \(\sigma_v=0.02\,\mathrm{V}\). CC provides the initial trajectory for optimization. The simulation estimator was implemented in C++ using GTSAM and solved with the Levenberg–Marquardt algorithm.
+The factor standard deviations are \(\sigma_0=10^{-4}\), \(\sigma_p=10^{-3}\), and \(\sigma_v=0.02\,\mathrm{V}\). CC provides the initial trajectory for optimization. The simulation estimator was implemented in C++ using GTSAM [8] and solved with the Levenberg–Marquardt algorithm [10,11].
 
 ## 4 Experimental Design
 
@@ -166,9 +168,9 @@ S=\left(1-\frac{\kappa_{\mathrm{FGO}}}{\kappa_{\mathrm{CC}}}\right)\times100\%.
 
 ### 4.3 NASA B0005 Supporting Case
 
-The first discharge cycle of NASA battery B0005 was used as a controlled supporting case. It contains 197 samples and a reported discharge capacity of approximately 1.856 Ah. Reference SOC was constructed by integrating the original measured current and normalizing it by the reported capacity. Bias levels of 5% and 10% were imposed on the measured current, while the measured terminal-voltage record was retained.
+The first discharge cycle of NASA battery B0005 was used as a controlled supporting case [12]. It contains 197 samples and a reported discharge capacity of approximately 1.856 Ah. Reference SOC was constructed by integrating the original measured current and normalizing it by the reported capacity. Bias levels of 5% and 10% were imposed on the measured current, while the measured terminal-voltage record was retained.
 
-For this supporting case, a fifth-order empirical voltage–SOC polynomial was fitted to the same discharge trajectory and used in a nonlinear least-squares estimator implemented with SciPy. Therefore, the test examines the response to controlled current perturbations in a measured battery record, but it is not an independent validation of a transferable OCV model or directly measured SOC ground truth.
+For this supporting case, a fifth-order empirical voltage–SOC polynomial was fitted to the same discharge trajectory and used in a nonlinear least-squares estimator implemented with SciPy [13]. Therefore, the test examines the response to controlled current perturbations in a measured battery record, but it is not an independent validation of a transferable OCV model or directly measured SOC ground truth.
 
 ## 5 Results and Discussion
 
@@ -277,4 +279,28 @@ The authors declare no conflicts of interest.
 
 ## References
 
-References will be inserted and cross-checked against the final journal format before submission.
+[1] G. L. Plett, “Extended Kalman filtering for battery management systems of LiPB-based HEV battery packs: Part 3. State and parameter estimation,” *Journal of Power Sources*, vol. 134, no. 2, pp. 277–292, 2004, doi: 10.1016/j.jpowsour.2004.02.033.
+
+[2] R. Xiong, J. Cao, Q. Yu, H. He, and F. Sun, “Critical review on the battery state of charge estimation methods for electric vehicles,” *IEEE Access*, vol. 6, pp. 1832–1843, 2018, doi: 10.1109/ACCESS.2017.2780258.
+
+[3] K. Movassagh, S. A. Raihan, B. Balasingam, and K. R. Pattipati, “A critical look at Coulomb counting approach for state of charge estimation in batteries,” *Energies*, vol. 14, no. 14, Art. no. 4074, 2021, doi: 10.3390/en14144074.
+
+[4] X. Lin, “Theoretical analysis of battery SOC estimation errors under sensor bias and variance,” *IEEE Transactions on Industrial Electronics*, vol. 65, no. 9, pp. 7138–7148, 2018, doi: 10.1109/TIE.2018.2795521.
+
+[5] S. Mendoza, J. Liu, P. Mishra, and H. Fathy, “On the relative contributions of bias and noise to lithium-ion battery state of charge estimation errors,” *Journal of Energy Storage*, vol. 11, pp. 86–92, 2017, doi: 10.1016/j.est.2017.01.006.
+
+[6] X. Hu, S. Li, and H. Peng, “A comparative study of equivalent circuit models for Li-ion batteries,” *Journal of Power Sources*, vol. 198, pp. 359–367, 2012, doi: 10.1016/j.jpowsour.2011.10.013.
+
+[7] F. R. Kschischang, B. J. Frey, and H.-A. Loeliger, “Factor graphs and the sum-product algorithm,” *IEEE Transactions on Information Theory*, vol. 47, no. 2, pp. 498–519, 2001, doi: 10.1109/18.910572.
+
+[8] F. Dellaert and M. Kaess, “Factor graphs for robot perception,” *Foundations and Trends in Robotics*, vol. 6, nos. 1–2, pp. 1–139, 2017, doi: 10.1561/2300000043.
+
+[9] L. Zhang and D. Tashima, “Battery state-of-charge estimation using factor graph optimization with linear and nonlinear voltage observation models,” *Applied Sciences*, vol. 16, no. 14, Art. no. 7100, 2026, doi: 10.3390/app16147100.
+
+[10] K. Levenberg, “A method for the solution of certain non-linear problems in least squares,” *Quarterly of Applied Mathematics*, vol. 2, no. 2, pp. 164–168, 1944, doi: 10.1090/qam/10666.
+
+[11] D. W. Marquardt, “An algorithm for least-squares estimation of nonlinear parameters,” *Journal of the Society for Industrial and Applied Mathematics*, vol. 11, no. 2, pp. 431–441, 1963, doi: 10.1137/0111030.
+
+[12] B. Saha and K. Goebel, “Battery Data Set,” NASA Prognostics Data Repository, NASA Ames Research Center, Moffett Field, CA, USA, 2007. [Online]. Available: https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/
+
+[13] P. Virtanen *et al*., “SciPy 1.0: Fundamental algorithms for scientific computing in Python,” *Nature Methods*, vol. 17, no. 3, pp. 261–272, 2020, doi: 10.1038/s41592-019-0686-2.
