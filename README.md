@@ -1,63 +1,89 @@
 # Robust Battery State-of-Charge Estimation under Current Sensor Bias Using Nonlinear Factor Graph Optimization
 
-This repository contains the source code, simulation results, manuscript draft, and validation materials for the second paper on battery State-of-Charge (SOC) estimation using nonlinear Factor Graph Optimization (FGO).
+This repository is the submission-aligned code and processed-data release for the article by Lei Zhang and Daisuke Tashima. It contains the nonlinear GTSAM estimator, the controlled simulation dataset, processed NASA B0005 supporting-case data, numerical summaries, and scripts used to reproduce the reported tables and figures.
 
-## Research Focus
+## Verified headline results
 
-This study focuses specifically on the robustness of SOC estimation under current sensor bias. Unlike general SOC estimation studies that mainly compare estimation accuracy under nominal measurement conditions, this work investigates how biased current measurements cause cumulative SOC drift and how nonlinear FGO can mitigate this drift by incorporating voltage-based measurement constraints.
-
-The main objective is to compare conventional Coulomb Counting (CC) and nonlinear FGO under different levels of artificial current sensor bias.
-
-## Paper Title
-
-**Robust Battery State-of-Charge Estimation under Current Sensor Bias Using Nonlinear Factor Graph Optimization**
-
-## Main Contributions
-
-1. A current-sensor-bias-oriented SOC estimation problem is formulated to analyze the cumulative drift of Coulomb Counting under biased current measurements.
-
-2. A nonlinear FGO-based SOC estimation framework is developed by combining current-based SOC transition constraints and voltage-based measurement constraints.
-
-3. The proposed method is evaluated using both controlled simulation data and preliminary real battery validation based on the NASA B0005 lithium-ion battery aging dataset.
-
-## Simulation Study
-
-A first-order RC battery model was used to generate a 12,001-sample simulation dataset under random current profiles. Artificial current sensor biases of 0.5%, 1%, 2%, 5%, and 10% were introduced into the current measurements.
-
-The simulation results show that the estimation error of Coulomb Counting increases as current sensor bias grows, while nonlinear FGO maintains more stable estimation accuracy through voltage-constrained optimization.
-
-For example, under a 10% current sensor bias in the simulation dataset:
-
-- Coulomb Counting RMSE: 0.0382
-- Nonlinear FGO RMSE: 0.0067
-
-## NASA B0005 Preliminary Validation
-
-A preliminary real-data validation was conducted using the first discharge cycle of the NASA B0005 lithium-ion battery aging dataset. Artificial current biases of 5% and 10% were applied to the measured current signal.
-
-The NASA validation results further support the robustness of nonlinear FGO under current sensor bias:
-
-| Current Bias | Coulomb Counting RMSE | Nonlinear FGO RMSE |
+| Test | Coulomb counting RMSE | Nonlinear FGO RMSE |
 |---|---:|---:|
-| 5% | 0.02585 | 0.01618 |
-| 10% | 0.04941 | 0.01618 |
+| Simulation, 10% current bias | 0.038210 | 0.003092 |
+| NASA B0005 supporting case, 10% bias | 0.057197 | 0.010111 |
 
-These results indicate that nonlinear FGO can reduce current-bias-induced SOC drift under realistic voltage and current measurement conditions.
+Across the five simulated bias levels, the origin-constrained propagation coefficients are 0.003821 per 1% bias for Coulomb counting and 0.000309 per 1% bias for nonlinear FGO, a reduction of 91.9%.
 
-## Repository Structure
+## Repository contents
 
 ```text
 .
- data/                         # Simulation and processed validation datasets
- results/                      # Output results from CC and FGO experiments
- src/                          # C++ source code for battery model and FGO experiments
- manuscript/                   # Manuscript draft, figures, and teacher review files
-   ├── paper2_draft.md
-   ├── paper2_draft_for_teacher.html
-   ├── paper2_draft_for_teacher_selfcontained.html
-   └── figures/
- CMakeLists.txt
- README.md
+├── include/                         # GTSAM custom factors
+├── src/main_nonlinear.cpp           # RC-consistent nonlinear FGO estimator
+├── scripts/
+│   ├── generate_bias_datasets.py    # creates the five biased simulation inputs
+│   ├── run_simulation_pipeline.py   # runs the estimator and writes metrics
+│   ├── evaluate_nasa_supporting_case.py
+│   └── make_figures.py
+├── data/
+│   ├── simulation/paper2_clean_base.csv
+│   └── nasa/                        # processed B0005 cycle and FGO trajectories
+├── results/                         # submission-aligned numerical results
+└── figures/                         # the three figures used in the manuscript
+```
 
-eof
+Historical drafts, teacher-review files, Paper 1 outputs, noise-only tests, and invalid intermediate results were deliberately excluded from this release.
+
+## Simulation reproduction
+
+Requirements:
+
+- CMake 3.16 or later
+- C++14 compiler
+- GTSAM 4.x
+- Python 3.9 or later
+- Python packages in `requirements.txt` for plotting
+
+From the repository root:
+
+```bash
+python scripts/generate_bias_datasets.py
+cmake -S . -B build
+cmake --build build -j
+python scripts/run_simulation_pipeline.py --executable build/soc_fgo_nonlinear
+```
+
+The pipeline evaluates 0.5%, 1%, 2%, 5%, and 10% multiplicative current bias. It writes the trajectory files to `generated/simulation/` and the summary to `generated/simulation_metrics.csv`. The historical output column `soc_kf` is retained for compatibility; it is Coulomb counting, not a Kalman-filter estimate.
+
+The model parameters match the manuscript: Q = 3.0 Ah, R0 = 0.05 ohm, R1 = 0.02 ohm, C1 = 2000 F, sigma0 = 1e-4, sigmap = 1e-3, and sigmav = 0.02 V. The RC polarization voltage is reconstructed from the biased current supplied to the estimator.
+
+## NASA B0005 supporting case
+
+Run:
+
+```bash
+python scripts/evaluate_nasa_supporting_case.py
+```
+
+The script evaluates only the 180 active-discharge samples from 0 to 3346.937 s and leaves Coulomb-counting SOC unclipped so accumulated drift is preserved. It reproduces `results/nasa_metrics.csv` and the 10% trajectory used in Figure 3.
+
+This is a controlled supporting case, not an independent validation: reference SOC and the empirical voltage model were derived from the same first-discharge record. The original NASA MATLAB files are not redistributed here. They are available from the [NASA Ames Prognostics Center of Excellence Data Set Repository](https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/).
+
+## Figures
+
+```bash
+python -m pip install -r requirements.txt
+python scripts/make_figures.py
+```
+
+The generated figures are written to `generated/figures/`. Checked copies corresponding to the submitted manuscript are included in `figures/`.
+
+## Data notes
+
+- `data/simulation/paper2_clean_base.csv` contains the unbiased, model-generated trajectory.
+- Biased simulation inputs preserve the reference SOC and terminal voltage and multiply only current by `(1 + bias)`.
+- `data/nasa/nasa_B0005_discharge_cycle_1.csv` is the processed first B0005 discharge cycle.
+- `data/nasa/nasa_fgo_bias*.csv` contains processed FGO trajectories used by the supporting-case evaluation.
+- Numerical values reported in the article are collected in `results/simulation_metrics.csv` and `results/nasa_metrics.csv`.
+
+## License
+
+Code is released under the MIT License. The processed NASA data remain subject to the terms of the original NASA source.
 

@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this code or processed data, please cite the associated article."
+title: "Code and processed data for robust battery SOC estimation under current-sensor bias"
+type: software
+authors:
+  - family-names: Zhang
+    given-names: Lei
+  - family-names: Tashima
+    given-names: Daisuke
+repository-code: "https://github.com/DJB19/soc_fgo_paper2"
+date-released: 2026-08-01
+license: MIT
+
